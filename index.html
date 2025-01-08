@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bulls</title>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+	 <!-- Navigation Bar -->
+	 <nav id="mainNav" style="display: flex; align-items: center; justify-content: space-between; background-color: #1a1a1a; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="logo" style="display: flex; align-items: center;">
+            <img src="logo1.png" alt="Description of the image" id="logo" width="100" height="100" style="border-radius: 50%; transition: transform 0.3s;">
+        </div>
+        <ul style="list-style: none; display: flex; margin: 0; padding: 0;">
+            <li style="margin: 0 15px;">
+                <a href="index.html" id="active" style="text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold; transition: color 0.3s;">Home</a>
+            </li>
+            <li style="margin: 0 15px;">
+                <a href="sports.html" style="text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold; transition: color 0.3s;">Achievements</a>
+            </li>
+            <li style="margin: 0 15px;">
+                <a href="#" style="text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold; transition: color 0.3s;">Contact-us</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Grass Image Section -->
+    <div class="images" style="height: 750px; background-image: url('grass.jpg'); background-size: 100% 100%; background-repeat: no-repeat; display: flex; justify-content: center; align-items: center; color: #ffffff; font-size: 32px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); margin-top: 0;">
+		
+    </div>
+
+    <script>
+        // Add hover effects for links
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            link.addEventListener('mouseover', function () {
+                this.style.color = '#ff6600'; // Highlight color on hover
+            });
+            link.addEventListener('mouseout', function () {
+                this.style.color = '#ffffff'; // Default color
+            });
+        });
+
+        // Add animation to the logo on hover
+        document.getElementById('logo').addEventListener('mouseover', function () {
+            this.style.transform = 'scale(1.1)';
+        });
+        document.getElementById('logo').addEventListener('mouseout', function () {
+            this.style.transform = 'scale(1)';
+        });
+    </script>
+	<section id="sponsor-section">
+		<div class="sponsor-title">
+			<h2>Sponsors</h2>
+		</div>
+		<div class="sponsor-images">
+			<div class="marquee">
+				<img src="sponsers.png" id="sponsors" width="1000" height="100" alt="Sponsors">
+			</div>
+		</div>
+	</section>
+	
+	<div class="about">
+        <h1 style="text-align: center;"> About us  </h1>
+		<p><span style="color:rgb(100, 43, 255); font-size: 18px;">BULLS F.C.</span>  is revolutionizing football in Pakistan, setting new standards of excellence and passion in the sport. Founded by AFC and FA England certified Coach Mudasar Mukhtar, our academy is dedicated to developing the next generation of football talent. With over 500 players currently enrolled across 6 strategic locations in Lahore and Multan, BULLS F.C. has become a prominent name in the local football scene.
+
+            Since our inception, we've trained and shaped over 5,000 players, providing them with top-tier coaching, a supportive environment, and opportunities to grow both as athletes and individuals. Our approach focuses on skill development, teamwork, and fostering a love for the game, creating not just players, but leaders on and off the field.
+            
+            At BULLS F.C., we are more than just a football academy—we are a family, united by our love for the sport and our commitment to success. WE ARE BULLS. WE ARE A TEAM. Whether you're a beginner looking to get started or an experienced player aiming to take your skills to the next level, BULLS F.C. is the place for you. Join us and be part of something bigger—an academy that pushes boundaries, builds character, and plays the game with heart.
+        </p></br>
+        <p style="font-size: 18px;">Hope You Have a MARVELOUS time in our Academy!
+    	</p>
+	</div>
+    <!-- Join Our Club Section -->
+<section class="join-club">
+    <div class="join-club-content" data-aos="fade-up" data-aos-offset="200" data-aos-duration="700">
+        <div class="club-container">
+            <!-- Left: Description -->
+            <div class="club-description">
+                <h2>Join Our Club</h2>
+                <p>
+                    BULLS F.C. has redefined football in Pakistan, setting a new standard in football excellence. 
+                    Led by AFC & FA ENGLAND certified Coach Mudasar Mukhtar, our club offers world-class training to over 500 players across 
+                    Lahore and Multan. Join us and become part of a team that’s shaping the future of football in Pakistan.
+                </p>
+            </div>
+
+            <!-- Right: Card -->
+            <div class="club-card">
+                <img src="Achivements/lst-s2winners.jpg" alt="LST S2 Winners" class="club-image" />
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer-section">
+    <div>
+        <div class="footer-info">
+            <p>BULLS FOOTBALL CLUB & ACADEMY</p>
+        </div>
+        <div class="social-media">
+            <p>Follow Us:</p>
+            <a href="https://www.instagram.com/bullsfc00/" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" 
+                     alt="Instagram" class="social-icon">
+            </a>
+        </div>
+        <div class="attribution">
+            <a href="https://www.flaticon.com/free-icons/instagram" 
+               title="instagram icons" 
+               target="_blank">
+                
+            </a>
+        </div>
+    </div>
+</footer>
+
+
+
+
+	</div>
+	<script type="text/javascript" src='main.js'></script>
+	<script type="text/javascript" src="ball.js"></script>
+	<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+	<script>
+  	AOS.init();
+	</script>
+
+</body>
+</html>
