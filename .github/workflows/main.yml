@@ -1,0 +1,22 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install OpenTelemetry CLI
+        run: |
+          curl -L https://github.com/open-telemetry/opentelemetry-collector/releases/latest/download/otelcol-linux-amd64 -o otelcol
+          chmod +x otelcol
+          sudo mv otelcol /usr/local/bin/
+
+      - name: Start OpenTelemetry Trace
+        run: |
+          export OTEL_EXPORTER_OTLP_ENDPOINT="http://<your-server-ip>:4317"
+          otelcol --config=otel-collector-config.yaml &
+
+      - name: Run Build Step
+        run: |
+          echo "Building project..."
+          sleep 5  # Simulating build process
