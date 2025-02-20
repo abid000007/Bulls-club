@@ -27,4 +27,4 @@ jobs:
           provider.register();"
 
       - name: Run tests
-        run: echo"hi"
+        run: echo "hi"
