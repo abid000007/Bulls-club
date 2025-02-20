@@ -1,42 +1,30 @@
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-
+name: CI Pipeline
+on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          python-version: '3.8'
+          node-version: '16'
 
-      - name: Install dependencies
+      - name: Install OpenTelemetry
         run: |
-          python -m pip install --upgrade pip
-          pip install opentelemetry-sdk
-          pip install opentelemetry-exporter-otlp
-          echo "Dependencies installed"
+          npm install @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/exporter-otlp-grpc
 
-      - name: Run tests with OpenTelemetry
-        env:
-          OTEL_EXPORTER_OTLP_ENDPOINT: "http://3.147.48.200:8889/"
-          OTEL_SERVICE_NAME: "github-actions-pipeline"
+      - name: Instrument with OpenTelemetry
         run: |
-          python -m opentelemetry.instrumentation.auto_instrument
-          echo "Running tests with OpenTelemetry instrumentation"
-          # Replace the following line with your actual test command
-          echo "test ran"
+          node -e "const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+          const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
+          const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
+          const provider = new NodeTracerProvider();
+          const exporter = new OTLPTraceExporter({ url: 'http://your-ec2-ip:4317' });
+          provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
+          provider.register();"
 
-      - name: Push Job Metrics to Pushgateway
-        run: |
-          echo "Pushing metrics to Pushgateway"
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      - name: Run tests
+        run: echo "done"
