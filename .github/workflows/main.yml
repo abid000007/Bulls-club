@@ -27,4 +27,4 @@ jobs:
           provider.register();"
 
       - name: Run tests
-        run: echo "done" akmdklawQ@@##
+        run: curl -x https://github.com/settings/tokens
