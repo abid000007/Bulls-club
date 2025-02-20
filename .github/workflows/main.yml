@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests with OpenTelemetry
         env:
-          OTEL_EXPORTER_OTLP_ENDPOINT: "http://3.147.48.200:4317"
+          OTEL_EXPORTER_OTLP_ENDPOINT: "http://3.147.48.200:8889/"
           OTEL_SERVICE_NAME: "github-actions-pipeline"
         run: |
           python -m opentelemetry.instrumentation.auto_instrument
