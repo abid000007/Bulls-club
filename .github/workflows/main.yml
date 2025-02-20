@@ -20,15 +20,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "hi"
+          python -m pip install --upgrade pip
+          pip install opentelemetry-sdk
+          pip install opentelemetry-exporter-otlp
+          echo "Dependencies installed"
 
-      - name: Run tests
+      - name: Run tests with OpenTelemetry
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: "http://3.147.48.200:4317"
+          OTEL_SERVICE_NAME: "github-actions-pipeline"
         run: |
-         echo "test ran"
-         
+          python -m opentelemetry.instrumentation.auto_instrument
+          echo "Running tests with OpenTelemetry instrumentation"
+          # Replace the following line with your actual test command
+          echo "test ran"
+
       - name: Push Job Metrics to Pushgateway
         run: |
-          echo "ci_build_duration_seconds{job='ci_pipeline'} $(date +%s)" | curl --data-binary @- http://3.147.48.200:9091/metrics/job/ci_pipeline
-          echo "ci_build_status{job='ci_pipeline'} 1" | curl --data-binary @- http://3.147.48.200:9091/metrics/job/ci_pipeline
+          echo "Pushing metrics to Pushgateway"
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
