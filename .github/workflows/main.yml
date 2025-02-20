@@ -27,4 +27,4 @@ jobs:
           provider.register();"
 
       - name: Run tests
-        run: curl -x https://github.com/settings/tokens
+        run: echo"hi"
