@@ -10,32 +10,38 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Set up GitHub Access Token
+      run: |
+        echo "GITHUB_TOKEN=${{ secrets.TOKEN }}" >> $GITHUB_ENV
+
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
         go-version: '1.16'
 
     - name: Build
-      run: echo "build"
+      run: echo "shoop"
+      continue-on-error: true
+      id: build_step
 
     - name: Test
-      run: echo "test"
+      run: echo "dope"
+      continue-on-error: true
+      id: test_step
 
-    - name: Export Metrics to Prometheus
+    - name: Export Build Metrics
       run: |
-        # Export build success metric to Prometheus Pushgateway
-        echo "github_actions_build_success 1" | curl -X POST -H "Content-Type: text/plain" --data-binary @- http://a8332a0fe239e41129958cb1a8058f30-1478874338.us-east-1.elb.amazonaws.com:31192/metrics/job/github_actions
+        if [ "${{ steps.build_step.outcome }}" == "failure" ] || [ "${{ steps.test_step.outcome }}" == "failure" ]; then
+          echo "github_actions_build_failure 1" > metrics.prom
+        else
+          echo "github_actions_build_success 1" > metrics.prom
+        fi
+        cat metrics.prom
 
     - name: Export Logs to OpenTelemetry
       run: |
-        # Export build success log to OpenTelemetry Collector
-        echo '{"logs": [{"body": "Build success"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
-
-    - name: Export Build Failure Metrics and Logs (if previous steps fail)
-      if: failure()
-      run: |
-        # Export build failure metric to Prometheus Pushgateway
-        echo "github_actions_build_failure 1" | curl -X POST -H "Content-Type: text/plain" --data-binary @- http://a8332a0fe239e41129958cb1a8058f30-1478874338.us-east-1.elb.amazonaws.com:31192/metrics/job/github_actions
-
-        # Export build failure log to OpenTelemetry Collector
-        echo '{"logs": [{"body": "Build failure"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
+        if [ "${{ steps.build_step.outcome }}" == "failure" ] || [ "${{ steps.test_step.outcome }}" == "failure" ]; then
+          echo '{"logs": [{"body": "Build failure"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
+        else
+          echo '{"logs": [{"body": "Build success"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
+        fi
