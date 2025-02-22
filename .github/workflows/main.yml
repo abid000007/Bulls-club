@@ -1,30 +1,41 @@
-name: CI Pipeline
+name: CI/CD Pipeline
+
 on: [push, pull_request]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16'
 
-      - name: Install OpenTelemetry
-        run: |
-          npm install @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/exporter-otlp-grpc
+    - name: Build
+      run: go build -v ./...
 
-      - name: Instrument with OpenTelemetry
-        run: |
-          node -e "const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
-          const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
-          const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
-          const provider = new NodeTracerProvider();
-          const exporter = new OTLPTraceExporter({ url: 'http://3.137.212.230:4317' });
-          provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
-          provider.register();"
+    - name: Test
+      run: go test -v ./...
 
-      - name: Run tests
-        run: echo "hi"
+    - name: Export Metrics to Prometheus
+      run: |
+        # Export build success metric to Prometheus Pushgateway
+        echo "github_actions_build_success 1" | curl -X POST -H "Content-Type: text/plain" --data-binary @- http://a8332a0fe239e41129958cb1a8058f30-1478874338.us-east-1.elb.amazonaws.com:31192/metrics/job/github_actions
+
+    - name: Export Logs to OpenTelemetry
+      run: |
+        # Export build success log to OpenTelemetry Collector
+        echo '{"logs": [{"body": "Build success"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
+
+    - name: Export Build Failure Metrics and Logs (if previous steps fail)
+      if: failure()
+      run: |
+        # Export build failure metric to Prometheus Pushgateway
+        echo "github_actions_build_failure 1" | curl -X POST -H "Content-Type: text/plain" --data-binary @- http://a8332a0fe239e41129958cb1a8058f30-1478874338.us-east-1.elb.amazonaws.com:31192/metrics/job/github_actions
+
+        # Export build failure log to OpenTelemetry Collector
+        echo '{"logs": [{"body": "Build failure"}]}' | curl -X POST -H "Content-Type: application/json" --data-binary @- http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:30221/v1/logs
