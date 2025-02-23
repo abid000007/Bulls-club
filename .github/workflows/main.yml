@@ -68,5 +68,3 @@ jobs:
             }]
           }]
         }
-EOF
-      continue-on-error: true
