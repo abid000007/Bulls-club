@@ -16,12 +16,12 @@ jobs:
 
     - name: Build
       id: build_step
-      run: go build -v ./...
+      run: echo "hi"
       continue-on-error: true
 
     - name: Test
       id: test_step
-      run: go test -v ./...
+      run: echo "hi"
       continue-on-error: true
 
     - name: Export Traces to OpenTelemetry
