@@ -16,17 +16,17 @@ jobs:
 
     - name: Build
       id: build_step
-      run: echo "hi"
+      run: echo "build"
       continue-on-error: true
 
     - name: Test
       id: test_step
-      run: echo "hi" 
+      run: echo "hi"
       continue-on-error: true
 
     - name: Export Traces to OpenTelemetry
       env:
-        OTEL_ENDPOINT: http://ae7de0b70edd54fe092b70ea269283cf-393981596.us-east-1.elb.amazonaws.com:4318
+        OTEL_ENDPOINT: http://ae7de0b70edd54fe092b70ea269283cf-1064389461.us-east-1.elb.amazonaws.com:4318
       run: |
         TRACE_ID=$(printf '%032x' $(( RANDOM * RANDOM )))  # Random 16-byte trace ID
         SPAN_ID=$(printf '%016x' $(( RANDOM )))            # Random 8-byte span ID
@@ -34,35 +34,10 @@ jobs:
         END_TIME=$((START_TIME + 10000000))               # 10ms later
         STATUS_CODE=$([[ "${{ steps.build_step.outcome }}" == "success" && "${{ steps.test_step.outcome }}" == "success" ]] && echo 1 || echo 2)  # 1=OK, 2=ERROR
 
+        echo "Sending trace with TRACE_ID: $TRACE_ID"  # Log for debugging
+
         curl -X POST "${OTEL_ENDPOINT}/v1/traces" \
           -H "Content-Type: application/json" \
           -H "X-Scope-OrgID: wal" \
-          -d '{
-            "resourceSpans": [{
-              "resource": {
-                "attributes": [
-                  {"key": "service.name", "value": {"stringValue": "github-actions"}},
-                  {"key": "github.repository", "value": {"stringValue": "${{ github.repository }}"}},
-                  {"key": "github.job", "value": {"stringValue": "${{ github.job }}"}}
-                ]
-              },
-              "scopeSpans": [{
-                "scope": {"name": "ci-cd"},
-                "spans": [{
-                  "traceId": "'${TRACE_ID}'",
-                  "spanId": "'${SPAN_ID}'",
-                  "name": "build-and-test",
-                  "startTimeUnixNano": "'${START_TIME}'",
-                  "endTimeUnixNano": "'${END_TIME}'",
-                  "attributes": [
-                    {"key": "build.outcome", "value": {"stringValue": "${{ steps.build_step.outcome }}"}},
-                    {"key": "test.outcome", "value": {"stringValue": "${{ steps.test_step.outcome }}"}},
-                    {"key": "github.event", "value": {"stringValue": "${{ github.event_name }}"}},
-                    {"key": "github.sha", "value": {"stringValue": "${{ github.sha }}"}}
-                  ],
-                  "status": {"code": '${STATUS_CODE}'}
-                }]
-              }]
-            }]
-          }'
+          -d "{\"resourceSpans\": [{\"resource\": {\"attributes\": [{\"key\": \"service.name\", \"value\": {\"stringValue\": \"github-actions\"}}, {\"key\": \"github.repository\", \"value\": {\"stringValue\": \"${{ github.repository }}\"}}, {\"key\": \"github.job\", \"value\": {\"stringValue\": \"${{ github.job }}\"}}]}, \"scopeSpans\": [{\"scope\": {\"name\": \"ci-cd\"}, \"spans\": [{\"traceId\": \"${TRACE_ID}\", \"spanId\": \"${SPAN_ID}\", \"name\": \"build-and-test\", \"startTimeUnixNano\": \"${START_TIME}\", \"endTimeUnixNano\": \"${END_TIME}\", \"attributes\": [{\"key\": \"build.outcome\", \"value\": {\"stringValue\": \"${{ steps.build_step.outcome }}\"}}, {\"key\": \"test.outcome\", \"value\": {\"stringValue\": \"${{ steps.test_step.outcome }}\"}}, {\"key\": \"github.event\", \"value\": {\"stringValue\": \"${{ github.event_name }}\"}}, {\"key\": \"github.sha\", \"value\": {\"stringValue\": \"${{ github.sha }}\"}}], \"status\": {\"code\": ${STATUS_CODE}}}]}}]}"
       continue-on-error: true
