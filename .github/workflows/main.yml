@@ -16,12 +16,12 @@ jobs:
 
     - name: Build
       id: build_step
-      run: echo "hi"
+      run: echo "Build step"
       continue-on-error: true
 
     - name: Test
       id: test_step
-      run: echo "hi"
+      run: echo "Test step"
       continue-on-error: true
 
     - name: Export Traces to OpenTelemetry
@@ -45,8 +45,8 @@ jobs:
             "resource": {
               "attributes": [
                 {"key": "service.name", "value": {"stringValue": "github-actions"}},
-                {"key": "github.repository", "value": {"stringValue": "${{ github.repository }}"}},
-                {"key": "github.job", "value": {"stringValue": "${{ github.job }}"}}
+                {"key": "github.repository", "value": {"stringValue": "abid000007/Bulls-club"}},
+                {"key": "github.job", "value": {"stringValue": "build"}}
               ]
             },
             "scopeSpans": [{
@@ -58,10 +58,10 @@ jobs:
                 "startTimeUnixNano": "$START_TIME",
                 "endTimeUnixNano": "$END_TIME",
                 "attributes": [
-                  {"key": "build.outcome", "value": {"stringValue": "${{ steps.build_step.outcome }}"}},
-                  {"key": "test.outcome", "value": {"stringValue": "${{ steps.test_step.outcome }}"}},
-                  {"key": "github.event", "value": {"stringValue": "${{ github.event_name }}"}},
-                  {"key": "github.sha", "value": {"stringValue": "${{ github.sha }}"}}
+                  {"key": "build.outcome", "value": {"stringValue": "${{ steps.build_step.outcome }}}"}},
+                  {"key": "test.outcome", "value": {"stringValue": "${{ steps.test_step.outcome }}}"}},
+                  {"key": "github.event", "value": {"stringValue": "${{ github.event_name }}}"}},
+                  {"key": "github.sha", "value": {"stringValue": "${{ github.sha }}}"}}
                 ],
                 "status": {"code": $STATUS_CODE}
               }]
