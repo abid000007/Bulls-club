@@ -16,12 +16,22 @@ jobs:
         id: build-step
         run: |
           echo "Running a fake build..."
-          exit 0 # Replace with your actual build commands (e.g., npm install, npm run build)
+          exit 0 # Replace with your actual build commands
 
       - name: Push build status to Pushgateway
-        if: always() # Runs whether the build succeeds or fails
+        if: always()
         run: |
           sudo apt-get update && sudo apt-get install -y curl
-          STATUS=$([[ ${{ job.status }} == "success" ]] && echo 1 || echo 0)
+          # Debug: Print job status
+          echo "Job status: ${{ job.status }}"
+          # Set STATUS explicitly
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS=1
+          else
+            STATUS=0
+          fi
+          # Debug: Print the metric before sending
+          echo "Metric to send: build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\"} $STATUS"
+          # Send to Pushgateway
           echo "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\"} $STATUS" | \
           curl --data-binary @- http://af14c7555b43943c897f47b84d25f423-1894518563.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline
