@@ -15,11 +15,7 @@ jobs:
       - name: Simulate a build
         id: build-step
         run: |
-          # Replace with your actual build commands
-          echo "Running build commands..."
-          # Example: ./build.sh
-          # Intentional failure for testing
-          # exit 1
+          curl ajas
           exit 0
 
       - name: Push build status to Pushgateway
