@@ -1,71 +1,27 @@
-name: CI/CD Pipeline
+name: CI/CD with Build Status to Pushgateway
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.16'
+      - name: Simulate a build
+        id: build-step
+        run: |
+          echo "Running a fake build..."
+          exit 0 # Replace with your actual build commands (e.g., npm install, npm run build)
 
-    - name: Build
-      id: build_step
-      run: echo "Build step"
-      continue-on-error: true
-
-    - name: Test
-      id: test_step
-      run: echo "Test step"
-      continue-on-error: true
-
-    - name: Export Traces to OpenTelemetry
-      env:
-        OTEL_ENDPOINT: http://ad0687771ac0b4e9ba35e3df73665c9d-533335591.us-east-1.elb.amazonaws.com:4318
-      run: |
-        TRACE_ID=$(printf '%032x' $(( RANDOM * RANDOM )))  # Random 16-byte trace ID
-        SPAN_ID=$(printf '%016x' $(( RANDOM )))            # Random 8-byte span ID
-        START_TIME=$(date +%s%N)                          # Current time in nanoseconds
-        END_TIME=$((START_TIME + 10000000))               # 10ms later
-        STATUS_CODE=$([[ "${{ steps.build_step.outcome }}" == "success" && "${{ steps.test_step.outcome }}" == "success" ]] && echo 1 || echo 2)  # 1=OK, 2=ERROR
-
-        echo "Sending trace with TRACE_ID: $TRACE_ID"  # Log for debugging
-
-        curl -X POST "${OTEL_ENDPOINT}/v1/traces" \
-          -H "Content-Type: application/json" \
-          -H "X-Scope-OrgID: wal" \
-          -d @- <<EOF
-        {
-          "resourceSpans": [{
-            "resource": {
-              "attributes": [
-                {"key": "service.name", "value": {"stringValue": "github-actions"}},
-                {"key": "github.repository", "value": {"stringValue": "abid000007/Bulls-club"}},
-                {"key": "github.job", "value": {"stringValue": "build"}}
-              ]
-            },
-            "scopeSpans": [{
-              "scope": {"name": "ci-cd"},
-              "spans": [{
-                "traceId": "$TRACE_ID",
-                "spanId": "$SPAN_ID",
-                "name": "build-and-test",
-                "startTimeUnixNano": "$START_TIME",
-                "endTimeUnixNano": "$END_TIME",
-                "attributes": [
-                  {"key": "build.outcome", "value": {"stringValue": "${{ steps.build_step.outcome }}}"}},
-                  {"key": "test.outcome", "value": {"stringValue": "${{ steps.test_step.outcome }}}"}},
-                  {"key": "github.event", "value": {"stringValue": "${{ github.event_name }}}"}},
-                  {"key": "github.sha", "value": {"stringValue": "${{ github.sha }}}"}}
-                ],
-                "status": {"code": $STATUS_CODE}
-              }]
-            }]
-          }]
-        }
-        EOF
+      - name: Push build status to Pushgateway
+        if: always() # Runs whether the build succeeds or fails
+        run: |
+          sudo apt-get update && sudo apt-get install -y curl
+          STATUS=$([[ ${{ job.status }} == "success" ]] && echo 1 || echo 0)
+          echo "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\"} $STATUS" | \
+          curl --data-binary @- http://af14c7555b43943c897f47b84d25f423-1894518563.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline
