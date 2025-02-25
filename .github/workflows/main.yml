@@ -14,8 +14,9 @@ jobs:
 
       - name: Simulate a build
         id: build-step
+        continue-on-error: true
         run: |
-          echo "Running a fake build..."
+          curl hhs
           exit 0 # Replace with your actual build commands
 
       - name: Push build status to Pushgateway
