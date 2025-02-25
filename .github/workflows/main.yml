@@ -15,7 +15,7 @@ jobs:
       - name: Simulate a build
         id: build-step
         run: |
-          curl ajas
+          echo "hi"
           exit 0
 
       - name: Push build status to Pushgateway
