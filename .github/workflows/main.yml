@@ -26,7 +26,7 @@ jobs:
 
     - name: Export Traces to OpenTelemetry
       env:
-        OTEL_ENDPOINT: http://ae7de0b70edd54fe092b70ea269283cf-1064389461.us-east-1.elb.amazonaws.com:4318
+        OTEL_ENDPOINT: http://ad0687771ac0b4e9ba35e3df73665c9d-533335591.us-east-1.elb.amazonaws.com:4318
       run: |
         TRACE_ID=$(printf '%032x' $(( RANDOM * RANDOM )))  # Random 16-byte trace ID
         SPAN_ID=$(printf '%016x' $(( RANDOM )))            # Random 8-byte span ID
@@ -68,3 +68,4 @@ jobs:
             }]
           }]
         }
+        EOF
