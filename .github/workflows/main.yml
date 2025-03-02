@@ -15,7 +15,7 @@ jobs:
       - name: Simulate a build
         id: build-step
         run: |
-          echo "hi\
+          echo "hi"
           exit 0
 
       - name: Push build status to Pushgateway
@@ -27,4 +27,4 @@ jobs:
             STATUS=0
           fi
           echo "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} $STATUS" | \
-          curl --data-binary @- http://a972f5297c25a49a4afdc21fa2d84a58-2001555871.us-west-2.elb.amazonaws.com:9091/metrics/job/build_pipeline
+          curl --data-binary @- http://adf349afd60074abe95d0ecbb3380cca-2012808911.us-west-2.elb.amazonaws.com:9091/metrics/job/build_pipeline
