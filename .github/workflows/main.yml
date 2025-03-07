@@ -15,16 +15,20 @@ jobs:
       - name: Simulate a build
         id: build-step
         run: |
+          start_time=$(date +%s)
           echo "hi"
           exit 0
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "BUILD_DURATION=$duration" >> $GITHUB_OUTPUT
 
       - name: Push build status to Pushgateway
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            STATUS=1
+            STATUS="success"
           else
-            STATUS=0
+            STATUS="failure"
           fi
-          echo "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} $STATUS" | \
+          echo -e "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} 1\nbuild_duration_seconds{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} ${{ steps.build-step.outputs['BUILD_DURATION'] }}" | \
           curl --data-binary @- http://adf349afd60074abe95d0ecbb3380cca-2012808911.us-west-2.elb.amazonaws.com:9091/metrics/job/build_pipeline
