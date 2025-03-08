@@ -16,17 +16,32 @@ jobs:
         id: build-step
         run: |
           start_time=$(date +%s)
+          echo "Simulating a build..."
+          sleep 2  # Simulate some work to get a measurable duration
           echo "hi"
-          exit 0
-         
+          exit 0   # Simulate success (replace with actual build logic)
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "BUILD_DURATION=$duration" >> $GITHUB_OUTPUT
 
       - name: Push build status to Pushgateway
         if: always()
         run: |
-          if [ "${{ job.status }}" = "success" ]; then
-            STATUS="success"
-          else
-            STATUS="failure"
-          fi
-          echo -e "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} 1\nbuild_duration_seconds{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} ${{ steps.build-step.outputs['BUILD_DURATION'] }}" | \
-          curl --data-binary @- http://a855f71a64930465fb5339ea184d1d3f-381870272.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline
+          # Determine status based on job outcome
+          STATUS="${{ job.status == 'success' && 'success' || 'failure' }}"
+
+          # Define the metrics payload with proper formatting
+          cat <<EOF > metrics.txt
+          build_status{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}",status="$STATUS"} 1
+          build_duration_seconds{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}",status="$STATUS"} ${{ steps.build-step.outputs.BUILD_DURATION }}
+          EOF
+
+          # Log the metrics for debugging
+          echo "Metrics being pushed to Pushgateway:"
+          cat metrics.txt
+
+          # Push to Pushgateway with verbose output for debugging
+          curl --data-binary @metrics.txt -v http://a855f71a64930465fb5339ea184d1d3f-381870272.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline || {
+            echo "Failed to push metrics to Pushgateway. Exit code: $?"
+            exit 1
+          }
