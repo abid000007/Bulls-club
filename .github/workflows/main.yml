@@ -11,33 +11,72 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for lead time calculation
 
-      - name: Simulate a build
+      - name: Simulate a build and test
         id: build-step
         run: |
           start_time=$(date +%s)
           echo "Simulating a build..."
-          sleep 2  # Simulate some work
-          echo "hi
-          exit 0
+          sleep 2  # Simulate build work
+          echo "Simulating tests..."
+          sleep 1  # Simulate test suite
+          # Pipeline success set to 1 (assuming success for simulation)
+          echo "PIPELINE_SUCCESS=1" >> $GITHUB_OUTPUT
+          echo "hi"
           end_time=$(date +%s)
           duration=$((end_time - start_time))
           echo "BUILD_DURATION=$duration" >> $GITHUB_OUTPUT
           echo "Build duration calculated: $duration seconds"
 
-      - name: Push build status to Pushgateway
+      - name: Calculate lead time for changes
+        id: lead-time
+        run: |
+          # Approximate lead time as time since last commit to now
+          last_commit_time=$(git log -1 --pretty=format:%ct HEAD^)
+          current_time=$(date +%s)
+          lead_time=$((current_time - last_commit_time))
+          echo "LEAD_TIME=$lead_time" >> $GITHUB_OUTPUT
+          echo "Lead time calculated: $lead_time seconds"
+
+      - name: Push metrics to Pushgateway
         if: always()
         run: |
           STATUS="${{ job.status == 'success' && 'success' || 'failure' }}"
           DURATION="${{ steps.build-step.outputs.BUILD_DURATION }}"
-          if [ -z "$DURATION" ]; then
-            echo "Error: BUILD_DURATION is empty. Setting default value."
-            DURATION=0
-          fi
+          PIPELINE_SUCCESS="${{ steps.build-step.outputs.PIPELINE_SUCCESS }}"
+          LEAD_TIME="${{ steps.lead-time.outputs.LEAD_TIME }}"
+          # Default values if variables are unset
+          [ -z "$DURATION" ] && DURATION=0
+          [ -z "$PIPELINE_SUCCESS" ] && PIPELINE_SUCCESS=0
+          [ -z "$LEAD_TIME" ] && LEAD_TIME=0
+
+          # Calculate approximated metrics
+          # Deployment frequency: 1 if success (simplified, could track over time)
+          DEPLOY_FREQ=$([ "$STATUS" == "success" ] && echo 1 || echo 0)
+          # Change failure rate: 0 if success, 1 if failure (simplified)
+          CHANGE_FAIL_RATE=$([ "$STATUS" == "success" ] && echo 0 || echo 1)
+          # Mean time to recovery: Not fully calculable here, default to 0
+          MTTR=0
+
           cat <<EOF > metrics.txt
+          # TYPE build_status gauge
           build_status{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}",status="$STATUS"} 1
+          # TYPE build_duration_seconds gauge
           build_duration_seconds{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}",status="$STATUS"} $DURATION
+          # TYPE deployment_frequency gauge
+          deployment_frequency{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}"} $DEPLOY_FREQ
+          # TYPE lead_time_for_changes_seconds gauge
+          lead_time_for_changes_seconds{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}"} $LEAD_TIME
+          # TYPE mean_time_to_recovery_seconds gauge
+          mean_time_to_recovery_seconds{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}"} $MTTR
+          # TYPE change_failure_rate gauge
+          change_failure_rate{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}"} $CHANGE_FAIL_RATE
+          # TYPE pipeline_success_rate gauge
+          pipeline_success_rate{repository="${{ github.repository }}",branch="${{ github.ref_name }}",run_id="${{ github.run_id }}"} $PIPELINE_SUCCESS
           EOF
+
           echo "Metrics being pushed to Pushgateway:"
           cat metrics.txt
           curl --data-binary @metrics.txt -v http://a855f71a64930465fb5339ea184d1d3f-381870272.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline || {
