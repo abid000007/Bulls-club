@@ -18,9 +18,7 @@ jobs:
           start_time=$(date +%s)
           echo "hi"
           exit 0
-          end_time=$(date +%s)
-          duration=$((end_time - start_time))
-          echo "BUILD_DURATION=$duration" >> $GITHUB_OUTPUT
+         
 
       - name: Push build status to Pushgateway
         if: always()
