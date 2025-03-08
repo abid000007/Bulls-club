@@ -18,7 +18,7 @@ jobs:
           start_time=$(date +%s)
           echo "Simulating a build..."
           sleep 2  # Simulate some work
-          echo "hi"
+          echo "hi
           exit 0
           end_time=$(date +%s)
           duration=$((end_time - start_time))
