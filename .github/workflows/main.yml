@@ -31,4 +31,4 @@ jobs:
             STATUS="failure"
           fi
           echo -e "build_status{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} 1\nbuild_duration_seconds{repository=\"${{ github.repository }}\",branch=\"${{ github.ref_name }}\",run_id=\"${{ github.run_id }}\",status=\"$STATUS\"} ${{ steps.build-step.outputs['BUILD_DURATION'] }}" | \
-          curl --data-binary @- http://adf349afd60074abe95d0ecbb3380cca-2012808911.us-west-2.elb.amazonaws.com:9091/metrics/job/build_pipeline
+          curl --data-binary @- http://a855f71a64930465fb5339ea184d1d3f-381870272.us-east-1.elb.amazonaws.com:9091/metrics/job/build_pipeline
