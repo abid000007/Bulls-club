@@ -18,7 +18,7 @@ jobs:
         id: build-step
         run: |
           start_time=$(date +%s)
-          echo "Simulating a build..."
+          echo "Simulating a build...
           sleep 2  # Simulate build work
           echo "Simulating tests..."
           sleep 1  # Simulate test suite
